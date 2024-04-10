@@ -1,0 +1,23 @@
+initializare Vite project pentru react
+
+npm init vite@latest
+
+instalare node modules adaugate de vite 
+
+npm install 
+
+pornire server vite 
+
+npm run dev
+
+instalare tailwind css 
+
+npm install -D tailwindcss postcss autoprefixer
+
+initializare tailwind css
+
+npx tailwindcss init -p
+
+React icons 
+
+npm install react-icons --save
