@@ -21,3 +21,15 @@ npx tailwindcss init -p
 React icons 
 
 npm install react-icons --save
+
+---------------------------------------------------
+GITHUB
+
+echo "# web3project" >> README.md
+git init
+git add README.md
+git commit -m "first commit"
+git branch -M main
+git remote add origin https://github.com/andreiparjolfac/web3project.git
+git push -u origin main
+
