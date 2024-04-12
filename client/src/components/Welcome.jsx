@@ -19,7 +19,7 @@ const Input = ({placeholder,name,type,value,handleChange}) => (
 
 const Welcome = ()=>{
 
-    const {connectWallet,connectedAccount,formData,handleChange,sendTransaction} = useContext(TransactionContext);
+    const {connectWallet,connectedAccount,formData,handleChange,sendTransaction,isLoading} = useContext(TransactionContext);
 
     const commonStyles = "min-h-[70px] sm:px-0 px-2 sm:min-w-[120px] flex justify-center items-center border-[0.5px] border-gray-400 text-sm font-light text-white";
     const handleSubmit = (e) => {
@@ -98,7 +98,7 @@ const Welcome = ()=>{
 
                     <div className="h-[1px] w-full bg-gray-400 my-2"/>
 
-                    {false ? (
+                    {isLoading ? (
                         <Loader/>
                     ):(
                     <button type="button" onClick={handleSubmit} className="text-white w-full mt-2 border-[1px] p-2 border-[#3d4f7c] rounded-full cursor-pointer">

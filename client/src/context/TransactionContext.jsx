@@ -21,9 +21,34 @@ export const TransactionProvider = ({children}) => {
     const [formData,setFormData] = useState({addressTo:"",amount:"",message:"",keyword:""});
     const [isLoading,setIsLoading] = useState(false);
     const [transactionCount,setTransactionCount] = useState(localStorage.getItem("transactionCount"));
-    
+    const [transactions,setTransactions] = useState([]);
     const handleChange = (e,name) => {
         setFormData((prevState)=>({...prevState,[name]:e.target.value}));
+    }
+
+    const getAllTransactions = async () => {
+        try {
+            if(!ethereum) return alert("Please Install Metamask!");
+            const transactionContract = await getEthereumContract();
+            const rawTransactions = await transactionContract.getFunction("getAllTransactions").call();
+            let structured_transactions = [];
+            for(let i=0;i<transactionCount;i++){
+                
+                structured_transactions.push({
+                    addressFrom:rawTransactions[i][0],
+                    addressTo:rawTransactions[i][1],
+                    amount:parseInt(rawTransactions[i][2])/Math.pow(10,18),
+                    message:rawTransactions[i][3],
+                    timestamp:new Date(Number(rawTransactions[i][4])*1000).toLocaleString(),
+                    keyword:rawTransactions[i][5]
+                })
+            }
+
+            setTransactions(structured_transactions);
+
+        } catch (error) {
+            console.error(error);
+        }
     }
 
     const checkIfWalletIsConnected = async () => {
@@ -37,11 +62,23 @@ export const TransactionProvider = ({children}) => {
         if(accounts.length){
             setConnectedAccount(accounts[0]);
 
-            //get all transactions
+            
         }else{
             console.log("No accounts found!");
         }
 
+        } catch (error) {
+            console.error(error);
+            throw new Error("No ethereum object!");
+        }
+    }
+
+    const checkIfTransactionsExists = async () => {
+        try {
+            const transactionContract = await getEthereumContract();
+            const count = parseInt(await transactionContract.getFunction("getTransactionCount").call());
+            window.localStorage.setItem("transactionCount",count);
+            setTransactionCount(count);
         } catch (error) {
             console.error(error);
             throw new Error("No ethereum object!");
@@ -69,7 +106,8 @@ export const TransactionProvider = ({children}) => {
 
             const transactionContract = await getEthereumContract();
             const parsedAmount = ethers.parseEther(amount);
-
+            
+            setIsLoading(true);
             await ethereum.request({
                 method : "eth_sendTransaction",
                 params : [{
@@ -82,7 +120,7 @@ export const TransactionProvider = ({children}) => {
             });
 
             const transactionHash = await transactionContract.getFunction("addToBlockchain").call(null,addressTo,parsedAmount,message,keyword);
-            setIsLoading(true);
+            
             console.log(`Loading  `);
             await transactionHash.wait();
             setIsLoading(false);
@@ -90,6 +128,8 @@ export const TransactionProvider = ({children}) => {
             const transactionCount = await transactionContract.getFunction("getTransactionCount").call();
             setTransactionCount(parseInt(transactionCount));
 
+            setFormData({addressTo:"",amount:"",message:"",keyword:""});
+            getAllTransactions();
 
         } catch (error) {
             console.error(error);
@@ -99,10 +139,12 @@ export const TransactionProvider = ({children}) => {
 
     useEffect(()=>{
         checkIfWalletIsConnected();
+        checkIfTransactionsExists();
+        getAllTransactions();
     },[]);
 
     return (
-        <TransactionContext.Provider value={{connectWallet,connectedAccount,formData,handleChange,sendTransaction}}>
+        <TransactionContext.Provider value={{connectWallet,connectedAccount,formData,handleChange,sendTransaction,isLoading,transactions}}>
             {children}
         </TransactionContext.Provider>
     );
